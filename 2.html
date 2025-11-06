@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>越中电话对话词汇配对游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            color: #2d3436;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .timer, .score {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        .timer {
+            color: #e17055;
+        }
+
+        .score {
+            color: #00b894;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .column-title {
+            text-align: center;
+            font-weight: bold;
+            color: #636e72;
+            padding: 10px;
+            background: #dfe6e9;
+            border-radius: 8px;
+        }
+
+        .card {
+            padding: 20px;
+            border: 3px solid #b2bec3;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card.selected {
+            background: #74b9ff;
+            color: white;
+            border-color: #0984e3;
+            transform: scale(1.05);
+        }
+
+        .card.correct {
+            background: #00b894;
+            color: white;
+            border-color: #00b894;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .card.wrong {
+            background: #e17055;
+            color: white;
+            border-color: #e17055;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .vietnamese {
+            color: #d63031;
+        }
+
+        .chinese {
+            color: #0984e3;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .audio-btn {
+            background: #a29bfe;
+            color: white;
+        }
+
+        .audio-btn:hover {
+            background: #6c5ce7;
+        }
+
+        .hint-btn {
+            background: #fdcb6e;
+            color: white;
+        }
+
+        .hint-btn:hover {
+            background: #f39c12;
+        }
+
+        .restart-btn {
+            background: #00b894;
+            color: white;
+        }
+
+        .restart-btn:hover {
+            background: #00a085;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 30px;
+        }
+
+        .success {
+            color: #00b894;
+        }
+
+        .error {
+            color: #e17055;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+        
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #636e72;
+            font-size: 1.1em;
+        }
+        
+        .completion-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            color: #2e7d32;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">📞 越中电话对话词汇配对 📞</h1>
+        </div>
+        
+        <div class="instructions">
+            点击左侧越南语词汇，然后点击对应的中文词汇进行配对
+        </div>
+        
+        <div class="game-info">
+            <div class="timer">时间: <span id="time">60</span>秒</div>
+            <div class="score">分数: <span id="score">0</span></div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div class="game-board">
+            <div class="column">
+                <div class="column-title vietnamese">🇻🇳 越南语</div>
+                <div id="vietnameseCards"></div>
+            </div>
+            <div class="column">
+                <div class="column-title chinese">🇨🇳 中文</div>
+                <div id="chineseCards"></div>
+            </div>
+        </div>
+
+        <div class="game-controls">
+            <button class="audio-btn" onclick="playAllAudio()">播放所有发音</button>
+            <button class="hint-btn" onclick="showHint()">提示</button>
+            <button class="restart-btn" onclick="restartGame()">重新开始</button>
+        </div>
+        
+        <div class="completion-message" id="completion-message">
+            恭喜！您已完成所有词汇配对！
+        </div>
+    </div>
+
+    <script>
+        // 更新后的词汇数据
+        const vocabulary = [
+            { vietnamese: "đổi", chinese: "换" },
+            { vietnamese: "Nhân Dân tệ", chinese: "人民币" },
+            { vietnamese: "Việt Nam đồng", chinese: "越南盾" },
+            { vietnamese: "muốn", chinese: "要" },
+            { vietnamese: "cô gái, chị gái", chinese: "小姐" },
+            { vietnamese: "quý ông, anh ơi", chinese: "先生" },
+            { vietnamese: "cảm ơn", chinese: "谢谢" },
+            { vietnamese: "không có gì", chinese: "不客气" },
+            { vietnamese: "xin lỗi", chinese: "对不起" },
+            { vietnamese: "buổi sáng", chinese: "上午" },
+            { vietnamese: "buổi chiều", chinese: "下午" },
+            { vietnamese: "buổi tối", chinese: "晚上" },
+            { vietnamese: "buổi trưa", chinese: "中午" },
+            { vietnamese: "hoa quả", chinese: "水果" }
+        ];
+
+        // 游戏状态变量
+        let selectedCard = null;
+        let matchedPairs = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let timer;
+        let canPlay = true;
+
+        // 初始化游戏
+        function initGame() {
+            const vietnameseContainer = document.getElementById('vietnameseCards');
+            const chineseContainer = document.getElementById('chineseCards');
+            
+            vietnameseContainer.innerHTML = '';
+            chineseContainer.innerHTML = '';
+            
+            // 洗牌算法
+            const shuffledVietnamese = [...vocabulary]
+                .sort(() => Math.random() - 0.5)
+                .map(item => ({...item, type: 'vietnamese'}));
+            
+            const shuffledChinese = [...vocabulary]
+                .sort(() => Math.random() - 0.5)
+                .map(item => ({...item, type: 'chinese'}));
+
+            // 创建越南语卡片
+            shuffledVietnamese.forEach((word, index) => {
+                const card = document.createElement('div');
+                card.className = `card vietnamese`;
+                card.textContent = word.vietnamese;
+                card.dataset.pair = word.chinese;
+                card.dataset.type = 'vietnamese';
+                card.dataset.index = index;
+                
+                card.addEventListener('click', () => handleCardClick(card));
+                vietnameseContainer.appendChild(card);
+            });
+
+            // 创建中文卡片
+            shuffledChinese.forEach((word, index) => {
+                const card = document.createElement('div');
+                card.className = `card chinese`;
+                card.textContent = word.chinese;
+                card.dataset.pair = word.vietnamese;
+                card.dataset.type = 'chinese';
+                card.dataset.index = index;
+                
+                card.addEventListener('click', () => handleCardClick(card));
+                chineseContainer.appendChild(card);
+            });
+
+            // 重置游戏状态
+            selectedCard = null;
+            matchedPairs = 0;
+            score = 0;
+            timeLeft = 60;
+            canPlay = true;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = timeLeft;
+            document.getElementById('message').textContent = '';
+            document.getElementById('completion-message').style.display = 'none';
+            
+            // 启动计时器
+            clearInterval(timer);
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        // 处理卡片点击
+        function handleCardClick(card) {
+            if (!canPlay || card.classList.contains('selected') || card.classList.contains('correct')) {
+                return;
+            }
+
+            if (!selectedCard) {
+                // 第一次选择
+                card.classList.add('selected');
+                selectedCard = card;
+                showMessage('请选择对应的词汇...', 'success');
+            } else {
+                // 第二次选择
+                const isCorrect = 
+                    selectedCard.dataset.pair === card.textContent && 
+                    selectedCard.dataset.type !== card.dataset.type;
+
+                if (isCorrect) {
+                    // 配对成功
+                    selectedCard.classList.add('correct');
+                    card.classList.add('correct');
+                    
+                    matchedPairs++;
+                    score += 10;
+                    document.getElementById('score').textContent = score;
+                    
+                    showMessage('✓ 配对成功！', 'success');
+                    
+                    // 检查游戏是否结束
+                    if (matchedPairs === vocabulary.length) {
+                        endGame(true);
+                    }
+                } else {
+                    // 配对失败
+                    selectedCard.classList.add('wrong');
+                    card.classList.add('wrong');
+                    score = Math.max(0, score - 2);
+                    document.getElementById('score').textContent = score;
+                    
+                    showMessage('✗ 配对错误，请再试一次', 'error');
+                    
+                    setTimeout(() => {
+                        selectedCard.classList.remove('selected', 'wrong');
+                        card.classList.remove('wrong');
+                    }, 1000);
+                }
+                
+                selectedCard = null;
+            }
+        }
+
+        // 显示消息
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('time').textContent = timeLeft;
+            
+            if (timeLeft <= 10) {
+                document.querySelector('.timer').style.color = '#e17055';
+            }
+            
+            if (timeLeft <= 0) {
+                endGame(false);
+            }
+        }
+
+        // 结束游戏
+        function endGame(isWin) {
+            canPlay = false;
+            clearInterval(timer);
+            
+            if (isWin) {
+                score += timeLeft * 2; // 时间奖励
+                document.getElementById('score').textContent = score;
+                showMessage(`🎉 恭喜！游戏通关！最终分数: ${score}`, 'success');
+                document.getElementById('completion-message').style.display = 'block';
+            } else {
+                showMessage('⏰ 时间到！游戏结束', 'error');
+            }
+        }
+
+        // 播放发音（模拟）
+        function playAllAudio() {
+            showMessage('🔊 播放所有词汇发音...', 'success');
+            // 在实际应用中，这里会播放每个词汇的发音
+        }
+
+        // 显示提示
+        function showHint() {
+            if (score >= 2) {
+                score -= 2;
+                document.getElementById('score').textContent = score;
+                showMessage('💡 提示：注意观察词汇的对应关系', 'success');
+            } else {
+                showMessage('❌ 分数不足，无法使用提示', 'error');
+            }
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            clearInterval(timer);
+            initGame();
+        }
+
+        // 页面加载时初始化游戏
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
