@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>越中电话对话词汇配对游戏</title>
+    <title>越中天气词汇配对游戏</title>
     <style>
         * {
             margin: 0;
@@ -16,14 +16,11 @@
             background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
             min-height: 100vh;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         .game-container {
             max-width: 800px;
-            width: 100%;
+            margin: 0 auto;
             background: white;
             border-radius: 20px;
             padding: 30px;
@@ -37,12 +34,8 @@
 
         .game-title {
             color: #2d3436;
-            font-size: 2.2em;
+            font-size: 2.5em;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
         }
 
         .game-info {
@@ -219,34 +212,12 @@
         .celebrate {
             animation: celebrate 0.5s ease-in-out;
         }
-        
-        .instructions {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #636e72;
-            font-size: 1.1em;
-        }
-        
-        .completion-message {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f5e9;
-            border-radius: 10px;
-            color: #2e7d32;
-            font-weight: bold;
-            display: none;
-        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="game-header">
-            <h1 class="game-title">📞 越中电话对话词汇配对 📞</h1>
-        </div>
-        
-        <div class="instructions">
-            点击左侧越南语词汇，然后点击对应的中文词汇进行配对
+            <h1 class="game-title">🌤️ 越中天气词汇配对 🌤️</h1>
         </div>
         
         <div class="game-info">
@@ -272,26 +243,28 @@
             <button class="hint-btn" onclick="showHint()">提示</button>
             <button class="restart-btn" onclick="restartGame()">重新开始</button>
         </div>
-        
-        <div class="completion-message" id="completion-message">
-            恭喜！您已完成所有词汇配对！
-        </div>
     </div>
 
     <script>
-        // 使用您提供的词汇数据（已移除"在"和"住"）
+        // 使用您提供的词汇数据
         const vocabulary = [
-            { vietnamese: "Giáo viên", chinese: "老师" },
-            { vietnamese: "gọi", chinese: "打" },
-            { vietnamese: "điện thoại", chinese: "电话" },
-            { vietnamese: "điện thoại di động", chinese: "手机" },
-            { vietnamese: "mời", chinese: "请" },
-            { vietnamese: "ăn cơm", chinese: "吃饭" },
-            { vietnamese: "ai", chinese: "谁" },
-            { vietnamese: "tìm", chinese: "找" },
-            { vietnamese: "không ở", chinese: "不在" },
-            { vietnamese: "nhà", chinese: "家" },
-            { vietnamese: "phòng", chinese: "房间" }
+            { vietnamese: "nóng", chinese: "热" },
+            { vietnamese: "lạnh", chinese: "冷" },
+            { vietnamese: "thời tiết", chinese: "天气" },
+            { vietnamese: "mùa xuân", chinese: "春天" },
+            { vietnamese: "ấm áp", chinese: "暖和" },
+            { vietnamese: "mùa hè", chinese: "夏天" },
+            { vietnamese: "độ", chinese: "度" },
+            { vietnamese: "đắt", chinese: "贵" },
+            { vietnamese: "rẻ", chinese: "便宜" },
+            { vietnamese: "hơn", chinese: "比" },
+            { vietnamese: "trời mưa", chinese: "下雨" },
+            { vietnamese: "tuyết rơi", chinese: "下雪" },
+            { vietnamese: "nổi gió", chinese: "刮风" },
+            { vietnamese: "ngày nắng", chinese: "晴天" },
+            { vietnamese: "nhiều mây", chinese: "多云" },
+            { vietnamese: "âm dưới", chinese: "零下" },
+            { vietnamese: "trời âm u", chinese: "阴天" }
         ];
 
         // 游戏状态变量
@@ -355,7 +328,6 @@
             document.getElementById('score').textContent = score;
             document.getElementById('time').textContent = timeLeft;
             document.getElementById('message').textContent = '';
-            document.getElementById('completion-message').style.display = 'none';
             
             // 启动计时器
             clearInterval(timer);
@@ -443,7 +415,6 @@
                 score += timeLeft * 2; // 时间奖励
                 document.getElementById('score').textContent = score;
                 showMessage(`🎉 恭喜！游戏通关！最终分数: ${score}`, 'success');
-                document.getElementById('completion-message').style.display = 'block';
             } else {
                 showMessage('⏰ 时间到！游戏结束', 'error');
             }

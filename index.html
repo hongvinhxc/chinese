@@ -193,31 +193,31 @@
         // Để thêm bài học mới, chỉ cần thêm object mới vào mảng này
         const lessons = [
             {
-                file: "0.html",
-                title: "Bài 0: Thời tiết",
-                titleChinese: "第0课：天气",
+                file: "1.html",
+                title: "Bài 1: Thời tiết",
+                titleChinese: "第1课：天气",
                 description: "Học từ vựng về thời tiết, mùa và nhiệt độ",
                 icon: "🌤️"
             },
             {
-                file: "1.html",
-                title: "Bài 1: Điện thoại",
-                titleChinese: "第1课：电话",
+                file: "2.html",
+                title: "Bài 2: Điện thoại",
+                titleChinese: "第2课：电话",
                 description: "Học từ vựng về gọi điện và đối thoại",
                 icon: "📞"
             },
             {
-                file: "2.html",
-                title: "Bài 2: Đổi tiền & Giao tiếp",
-                titleChinese: "第2课：换钱和交流",
+                file: "3.html",
+                title: "Bài 3: Đổi tiền & Giao tiếp",
+                titleChinese: "第3课：换钱和交流",
                 description: "Học từ vựng về đổi tiền, xưng hô và giao tiếp hàng ngày",
                 icon: "💱"
             }
             // Thêm bài học mới ở đây, ví dụ:
             // {
-            //     file: "3.html",
-            //     title: "Bài 3: Tên bài học",
-            //     titleChinese: "第3课：课程名",
+            //     file: "4.html",
+            //     title: "Bài 4: Tên bài học",
+            //     titleChinese: "第4课：课程名",
             //     description: "Mô tả bài học",
             //     icon: "🎯"
             // }
@@ -234,7 +234,7 @@
                 card.className = 'lesson-card';
                 
                 card.innerHTML = `
-                    <span class="lesson-number">${index}</span>
+                    <span class="lesson-number">${index + 1}</span>
                     <span class="lesson-icon">${lesson.icon}</span>
                     <div class="lesson-title">${lesson.title}</div>
                     <div class="lesson-title" style="font-size: 1.2em; opacity: 0.8;">${lesson.titleChinese}</div>
