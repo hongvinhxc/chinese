@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>中越语配对游戏 | 金融词汇精学版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1e5a6b 0%, #0e3b4a 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,248,225,0.95);
+            border-radius: 68px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.6);
+            padding: 20px 25px 30px 25px;
+            transition: all 0.2s;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            gap: 12px;
+        }
+        .score-box, .pairs-box {
+            background: #2c2e3a;
+            padding: 8px 18px;
+            border-radius: 50px;
+            color: #f9e0a8;
+            font-weight: bold;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), 0 3px 6px rgba(0,0,0,0.2);
+        }
+        .score-box span, .pairs-box span {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffd966;
+            margin-left: 8px;
+        }
+        .message-area {
+            background: #efebe2;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-weight: 600;
+            color: #1f5e6e;
+            font-size: 1rem;
+            box-shadow: inset 0 0 0 1px #fff8, 0 4px 8px #0001;
+            flex: 1;
+            min-width: 180px;
+            text-align: center;
+        }
+        button {
+            background: #ffb347;
+            border: none;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #2d2b1f;
+            box-shadow: 0 3px 0 #a0581a;
+            font-family: inherit;
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #a0581a;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 18px;
+            margin: 25px 0 20px;
+        }
+
+        .card {
+            background: #fffef7;
+            border-radius: 28px;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 15px 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 12px 18px -8px rgba(0,0,0,0.2), 0 0 0 2px #f3e5c0 inset;
+            position: relative;
+            word-break: break-word;
+        }
+
+        .card.zh-card {
+            background: linear-gradient(135deg, #fff3e0, #ffe6c9);
+            border-left: 8px solid #c97e2c;
+        }
+        .card.vi-card {
+            background: linear-gradient(135deg, #e6f4ea, #d0ecd8);
+            border-left: 8px solid #2d6a4f;
+        }
+
+        .card.matched {
+            opacity: 0.65;
+            background: #bdb59b;
+            filter: grayscale(0.2);
+            cursor: default;
+            transform: scale(0.97);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-left-color: #5e5a4c;
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            text-decoration-color: #2e5c2e;
+        }
+        .card.matched::after {
+            content: "✓✓";
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            font-size: 1.6rem;
+            opacity: 0.8;
+            color: #2e6324;
+            font-weight: bold;
+        }
+
+        .card.selected {
+            background: #ffe694;
+            transform: scale(0.98);
+            box-shadow: 0 0 0 3px #f3b33d, 0 8px 18px rgba(0,0,0,0.2);
+            border-left-color: #d68b2c;
+        }
+
+        .card.error-flash {
+            animation: shakeFlash 0.3s ease-in-out 0s 2;
+            background-color: #ffb3b3;
+        }
+
+        @keyframes shakeFlash {
+            0% { transform: translateX(0px); background-color: #ffb3b3;}
+            25% { transform: translateX(-6px);}
+            75% { transform: translateX(6px);}
+            100% { transform: translateX(0px); background-color: #ffe0b5;}
+        }
+
+        .completed-overlay {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: #2b734bdd;
+            border-radius: 60px;
+            padding: 12px;
+            margin-top: 10px;
+            color: #ffefbf;
+        }
+
+        footer {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
+            }
+            .card {
+                font-size: 0.9rem;
+                padding: 12px 6px;
+            }
+            .message-area {
+                font-size: 0.85rem;
+            }
+        }
+
+        .legend {
+            font-size: 0.8rem;
+            background: #fcf8e8;
+            border-radius: 30px;
+            display: inline-block;
+            padding: 4px 14px;
+            margin-top: 8px;
+            color: #325b49;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="game-header">
+        <div class="score-box">🏆 分数 <span id="scoreValue">0</span></div>
+        <div class="pairs-box">📚 已配对 <span id="matchedCount">0</span> / <span id="totalPairs">0</span></div>
+        <div class="message-area" id="gameMessage">✨ 点击卡片，配对中越词汇 ✨</div>
+        <button id="resetGameBtn">🔄 新的一局</button>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="legend">💡 提示：中文卡片(暖色) ↔ 越南语卡片(绿色) 配对正确得10分。一共14组常用词汇，温习巩固~</div>
+    <footer>
+        <small style="color:#e0e7e3;">📖 词汇：存、存款、活期、定期、还是、多长、多高、多大、多重、利率、业务、其他、办、办理、时间 (完整对应越南语)</small>
+    </footer>
+</div>
+
+<script>
+    // ============================================================
+    // 根据用户最新提供的准确配对数据 (严格按照用户消息订正)
+    // 用户给出的对应关系:
+    // 存 ： Gửi (tiền）
+    // 存款 ： gửi tiền
+    // 活期: Không kỳ hạn
+    // 定期: có kỳ hạn   (注意原文“定期 có kỳ hạn”, 调整为完整越南语)
+    // 还是: Hay là
+    // 多长: Bao lâu
+    // 多高: Cao bao nhiêu
+    // 多大: Bao nhiêu tuổi
+    // 多重: Nặng bao nhiêu
+    // 利率: Lãi suất
+    // 业务: nghiệp vụ
+    // 其他: Cái khác
+    // 办: Làm
+    // 办理: Xử lý, làm (thủ tục)
+    // 时间: Thời gian
+    // 一共15组词汇(包含存/存款/活期/定期/还是/多长/多高/多大/多重/利率/业务/其他/办/办理/时间)
+    // 确保游戏包含完整配对，共计15组，30张卡片。
+    // ============================================================
+    const vocabularyPairs = [
+        { zh: "存", vi: "Gửi (tiền)" },
+        { zh: "存款", vi: "gửi tiền" },
+        { zh: "活期", vi: "Không kỳ hạn" },
+        { zh: "定期", vi: "có kỳ hạn" },
+        { zh: "还是", vi: "Hay là" },
+        { zh: "多长", vi: "Bao lâu" },
+        { zh: "多高", vi: "Cao bao nhiêu" },
+        { zh: "多大", vi: "Bao nhiêu tuổi" },
+        { zh: "多重", vi: "Nặng bao nhiêu" },
+        { zh: "利率", vi: "Lãi suất" },
+        { zh: "业务", vi: "nghiệp vụ" },
+        { zh: "其他", vi: "Cái khác" },
+        { zh: "办", vi: "Làm" },
+        { zh: "办理", vi: "Xử lý, làm (thủ tục)" },
+        { zh: "时间", vi: "Thời gian" }
+    ];
+    
+    // 总配对数量
+    const totalPairsCount = vocabularyPairs.length;  // = 15
+    
+    let currentCards = [];      // 卡片对象数组
+    let selectedCard = null;    // 当前选中的卡片
+    let currentScore = 0;
+    let matchedPairs = 0;       // 已成功配对的数量 (按组)
+    let lockBoard = false;      // 防止快速连续点击
+    
+    // DOM 元素
+    const cardsGrid = document.getElementById('cardsGrid');
+    const scoreSpan = document.getElementById('scoreValue');
+    const matchedSpan = document.getElementById('matchedCount');
+    const totalPairsSpan = document.getElementById('totalPairs');
+    const gameMessageDiv = document.getElementById('gameMessage');
+    const resetBtn = document.getElementById('resetGameBtn');
+    
+    // 辅助: 洗牌算法 (Fisher-Yates)
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+    
+    // 构建卡片数组 (未经洗牌，后续洗牌)
+    function buildRawCardDeck() {
+        let deck = [];
+        for (let i = 0; i < vocabularyPairs.length; i++) {
+            const pair = vocabularyPairs[i];
+            // 中文卡片
+            deck.push({
+                uniqueId: `pair-${i}-zh`,
+                pairId: i,
+                type: 'zh',
+                text: pair.zh,
+                matched: false,
+                element: null
+            });
+            // 越南语卡片
+            deck.push({
+                uniqueId: `pair-${i}-vi`,
+                pairId: i,
+                type: 'vi',
+                text: pair.vi,
+                matched: false,
+                element: null
+            });
+        }
+        return shuffleArray(deck);
+    }
+    
+    // 更新UI分数和配对计数
+    function updateStatsUI() {
+        scoreSpan.innerText = currentScore;
+        matchedSpan.innerText = matchedPairs;
+        totalPairsSpan.innerText = totalPairsCount;
+    }
+    
+    // 显示提示消息 (可区分错误/成功)
+    function showMessage(msg, isError = false) {
+        gameMessageDiv.innerText = msg;
+        if (!isError) {
+            gameMessageDiv.style.background = "#d9e6b3";
+            gameMessageDiv.style.color = "#1f543e";
+        } else {
+            gameMessageDiv.style.background = "#ffd1b5";
+            gameMessageDiv.style.color = "#aa2e1c";
+        }
+        setTimeout(() => {
+            // 仅当当前消息未被覆盖时还原风格
+            if (gameMessageDiv.innerText === msg) {
+                gameMessageDiv.style.background = "#efebe2";
+                gameMessageDiv.style.color = "#1f5e6e";
+                if (matchedPairs === totalPairsCount) {
+                    gameMessageDiv.innerText = "🎉 完美通关！词汇大师！点击新对局继续挑战 🎉";
+                } else {
+                    gameMessageDiv.innerText = "✨ 继续配对，温习中越词汇 ✨";
+                }
+            }
+        }, 1300);
+    }
+    
+    // 清除选中的视觉效果
+    function clearSelectedVisual() {
+        if (selectedCard && selectedCard.element) {
+            selectedCard.element.classList.remove('selected');
+        }
+        selectedCard = null;
+    }
+    
+    // 检查是否胜利
+    function checkGameComplete() {
+        if (matchedPairs === totalPairsCount) {
+            showMessage("🏅  xuất sắc! 全配对成功！ + 词汇掌握度 💯", false);
+            gameMessageDiv.style.background = "#c3e0b2";
+            gameMessageDiv.style.color = "#1b4d2e";
+        }
+    }
+    
+    // 执行配对逻辑 (传入两个卡片对象)
+    function attemptMatch(cardA, cardB) {
+        // 如果任一卡片已经配对 或 相同卡片，无效
+        if (cardA.matched || cardB.matched) return false;
+        if (cardA.uniqueId === cardB.uniqueId) return false;
+        
+        const isMatch = (cardA.pairId === cardB.pairId);
+        
+        if (isMatch) {
+            // 配对成功
+            cardA.matched = true;
+            cardB.matched = true;
+            // 更新DOM样式
+            if (cardA.element) {
+                cardA.element.classList.add('matched');
+                cardA.element.classList.remove('selected');
+            }
+            if (cardB.element) {
+                cardB.element.classList.add('matched');
+                cardB.element.classList.remove('selected');
+            }
+            matchedPairs++;
+            currentScore += 10;
+            updateStatsUI();
+            showMessage(`✔️ 配对成功！ +10分  (${cardA.text}  ↔  ${cardB.text})`, false);
+            // 清除全局选中状态 (已经配对完)
+            if (selectedCard) clearSelectedVisual();
+            checkGameComplete();
+            return true;
+        } else {
+            // 配对失败 — 添加错误闪动效果
+            if (cardA.element) cardA.element.classList.add('error-flash');
+            if (cardB.element) cardB.element.classList.add('error-flash');
+            setTimeout(() => {
+                if (cardA.element) cardA.element.classList.remove('error-flash');
+                if (cardB.element) cardB.element.classList.remove('error-flash');
+            }, 400);
+            showMessage(`❌ 配对错误: “${cardA.text}” 和 “${cardB.text}” 不正确，再试试看～`, true);
+            return false;
+        }
+    }
+    
+    // 卡片点击处理器
+    async function handleCardClick(clickedCard) {
+        // 已配对或锁定状态不可交互
+        if (clickedCard.matched) {
+            showMessage("📌 这个词已经配对成功了！继续其他卡片", false);
+            return;
+        }
+        if (lockBoard) return;
+        
+        // 情况1：没有任何卡片被选中
+        if (selectedCard === null) {
+            // 选中当前卡片
+            selectedCard = clickedCard;
+            if (clickedCard.element) clickedCard.element.classList.add('selected');
+            showMessage(`👉 已选中: ${clickedCard.text} ，现在点击配对的另一张卡片`, false);
+            return;
+        }
+        
+        // 情况2：已有选中的卡片，进行配对
+        const firstCard = selectedCard;
+        const secondCard = clickedCard;
+        
+        // 如果点的是同一个卡片 => 取消选中
+        if (firstCard.uniqueId === secondCard.uniqueId) {
+            clearSelectedVisual();
+            showMessage("✨ 已取消选中", false);
+            return;
+        }
+        
+        // 锁定板子防止重复点击
+        lockBoard = true;
+        
+        // 尝试配对
+        const success = attemptMatch(firstCard, secondCard);
+        
+        // 配对结束清除所有高亮选中状态
+        clearSelectedVisual();   // 清除first的高亮
+        // 额外确保second的高亮不存在 (second肯定没有高亮class，但以防万一)
+        if (secondCard.element) secondCard.element.classList.remove('selected');
+        
+        // 解锁延迟 (避免动画期间再次点击)
+        setTimeout(() => {
+            lockBoard = false;
+        }, 400);
+        
+        if (!success) {
+            // 失败时不做额外动作,已展示错误
+        }
+    }
+    
+    // 渲染网格: 基于currentCards
+    function renderGame() {
+        cardsGrid.innerHTML = '';
+        for (let i = 0; i < currentCards.length; i++) {
+            const card = currentCards[i];
+            const cardDiv = document.createElement('div');
+            cardDiv.className = `card ${card.type === 'zh' ? 'zh-card' : 'vi-card'}`;
+            if (card.matched) {
+                cardDiv.classList.add('matched');
+            }
+            cardDiv.textContent = card.text;
+            card.element = cardDiv;
+            // 绑定点击事件
+            cardDiv.addEventListener('click', (function(cardObj) {
+                return function() { handleCardClick(cardObj); };
+            })(card));
+            cardsGrid.appendChild(cardDiv);
+        }
+        // 确保界面统计刷新
+        updateStatsUI();
+        // 重置任何遗留选中状态
+        if (selectedCard) {
+            clearSelectedVisual();
+            selectedCard = null;
+        }
+        lockBoard = false;
+    }
+    
+    // 完全重置游戏 (新对局)
+    function resetAndNewGame() {
+        // 生成全新洗牌卡片组 (所有matched状态为false)
+        const newDeck = buildRawCardDeck();
+        currentCards = newDeck;
+        selectedCard = null;
+        lockBoard = false;
+        currentScore = 0;
+        matchedPairs = 0;
+        updateStatsUI();
+        renderGame();
+        showMessage("🃏 新的一局！请将中文与对应的越南语配对，每组10分", false);
+        gameMessageDiv.style.background = "#efebe2";
+    }
+    
+    // 初始化游戏
+    function initGame() {
+        const initialDeck = buildRawCardDeck();
+        currentCards = initialDeck;
+        selectedCard = null;
+        lockBoard = false;
+        currentScore = 0;
+        matchedPairs = 0;
+        updateStatsUI();
+        renderGame();
+        showMessage("🇨🇳🇻🇳 中越配对游戏开始！点击任意卡片，再找对应翻译配对。", false);
+    }
+    
+    // 重置按钮事件
+    resetBtn.addEventListener('click', () => {
+        resetAndNewGame();
+    });
+    
+    // 启动游戏
+    initGame();
+</script>
+</body>
+</html>
