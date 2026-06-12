@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>词语预览 - 逐词显示</title>
+<style>
+
+body{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+font-size:120px;   /* tăng cỡ chữ */
+font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="word"></div>
+
+<script>
+
+let words=[
+"寒假",
+"怀疑",
+"批评",
+"赶",
+"表扬",
+"闹钟",
+"打针",
+"棒",
+"弄",
+"弹钢琴",
+"厕所",
+"孙子",
+"千万",
+"醒",
+"管理",
+"父亲"
+];
+
+let i=0;
+
+function showWord(){
+
+document.getElementById("word").innerText=words[i];
+
+i++;
+
+if(i<words.length){
+setTimeout(showWord,4000);
+}
+
+}
+
+showWord();
+
+</script>
+
+</body>
+</html>
