@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>连连看 - 汉字配对拼音</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: linear-gradient(145deg, #1a6d3c, #0e4a2a);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, 'Segoe UI', 'Noto Sans TC', '微软雅黑', sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .game-box {
+            max-width: 1300px;
+            width: 100%;
+            background: #fff5e6;
+            border-radius: 64px;
+            padding: 20px 25px 35px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.4);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin: 0 0 5px;
+            color: #ffefb9;
+            text-shadow: 3px 3px 0 #8b5a2b;
+            background: #2c1a0e;
+            display: inline-block;
+            width: auto;
+            padding: 6px 35px;
+            border-radius: 60px;
+            letter-spacing: 2px;
+        }
+        .title-wrap {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .status {
+            display: flex;
+            justify-content: space-between;
+            background: #2e241a;
+            padding: 12px 25px;
+            border-radius: 60px;
+            color: #ffeca2;
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .score, .message {
+            background: #00000055;
+            padding: 5px 20px;
+            border-radius: 40px;
+        }
+        .message {
+            flex-grow: 1;
+            text-align: center;
+        }
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        .column {
+            flex: 1;
+            min-width: 250px;
+            background: #e6dcc0;
+            border-radius: 48px;
+            padding: 20px 15px;
+            box-shadow: inset 0 0 0 3px #fff2cf, 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .column h2 {
+            text-align: center;
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #4a3720;
+        }
+        .cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .card {
+            background: white;
+            border-radius: 60px;
+            padding: 14px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #f7d99e;
+            font-weight: bold;
+        }
+        .card.selected {
+            background: #ffe0a3;
+            border: 3px solid #e09d32;
+            transform: scale(1.01);
+            box-shadow: 0 0 0 2px #ffdd99;
+        }
+        .card.matched {
+            visibility: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: visibility 0.2s, opacity 0.2s;
+            box-shadow: none;
+        }
+        .chinese-card .chinese {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #3b2a1f;
+            letter-spacing: 2px;
+        }
+        .pinyin-card .pinyin {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #c2652c;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .reset-btn {
+            display: block;
+            margin: 25px auto 0;
+            background: #ffcd7e;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #a57238;
+            transition: 0.05s linear;
+        }
+        .reset-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #a57238;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #9b7b54;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 700px) {
+            .chinese-card .chinese { font-size: 1.3rem; }
+            .pinyin-card .pinyin { font-size: 1rem; }
+            .column h2 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-box">
+    <div class="title-wrap">
+        <h1>🔗 汉字 · 拼音连连看</h1>
+    </div>
+    <div class="status">
+        <div class="score">✅ 配对成功: <span id="matchedCount">0</span> / <span id="totalCount">0</span></div>
+        <div class="message" id="statusMsg">✨ 点击汉字，再点击拼音，正确配对即可消除 ✨</div>
+    </div>
+    <div class="game-area">
+        <!-- 左侧：汉字列 -->
+        <div class="column">
+            <h2>📖 汉字</h2>
+            <div id="chineseList" class="cards"></div>
+        </div>
+        <!-- 右侧：拼音列 -->
+        <div class="column">
+            <h2>🔊 拼音</h2>
+            <div id="pinyinList" class="cards"></div>
+        </div>
+    </div>
+    <button class="reset-btn" id="resetGame">🔄 重新洗牌 / 重置</button>
+    <footer>💡 玩法：点击一个汉字 → 再点击一个拼音。配对正确会一起消失！配对错误会有提示~</footer>
+</div>
+
+<script>
+    // ---------- 词库（严格按照你的顺序，保证每个汉字和拼音对应）----------
+    const wordsData = [
+        { chinese: "贸易", pinyin: "mào yì" },
+        { chinese: "楼", pinyin: "lóu" },
+        { chinese: "电梯", pinyin: "diàn tī" },
+        { chinese: "过", pinyin: "guò" },
+        { chinese: "大厅", pinyin: "dà tīng" },
+        { chinese: "以后", pinyin: "yǐ hòu" },
+        { chinese: "应该", pinyin: "yīng gāi" },
+        { chinese: "出", pinyin: "chū" },
+        { chinese: "左右", pinyin: "zuǒ yòu" },
+        { chinese: "走廊", pinyin: "zǒu láng" },
+        { chinese: "红绿灯", pinyin: "hóng lǜ dēng" },
+        { chinese: "过去", pinyin: "guò qù" },
+        { chinese: "大概", pinyin: "dà gài" },
+        { chinese: "米", pinyin: "mǐ" },
+        { chinese: "自动取款机", pinyin: "zì dòng qǔ kuǎn jī" },
+        { chinese: "就", pinyin: "jiù" },
+        { chinese: "层", pinyin: "céng" },
+        { chinese: "顺", pinyin: "shùn" },
+        { chinese: "条", pinyin: "tiáo" }
+    ];
+
+    // 构建卡片对象数组
+    let chineseCards = [];     // 存储 { id, text, pairId, matched }
+    let pinyinCards = [];
+    let selectedCard = null;   // 存储选中的 { type, id, pairId }
+    let matchCount = 0;
+
+    // DOM 元素
+    const chineseContainer = document.getElementById('chineseList');
+    const pinyinContainer = document.getElementById('pinyinList');
+    const matchedSpan = document.getElementById('matchedCount');
+    const totalSpan = document.getElementById('totalCount');
+    const statusMsgDiv = document.getElementById('statusMsg');
+
+    // 初始化/重置游戏 (打乱顺序)
+    function initGame() {
+        // 构建原始数据
+        const rawChinese = wordsData.map((item, idx) => ({
+            id: idx,
+            text: item.chinese,
+            pairId: idx,
+            matched: false
+        }));
+        const rawPinyin = wordsData.map((item, idx) => ({
+            id: idx,
+            text: item.pinyin,
+            pairId: idx,
+            matched: false
+        }));
+
+        // 分别打乱顺序（Fisher-Yates）
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        chineseCards = shuffleArray([...rawChinese]);
+        pinyinCards = shuffleArray([...rawPinyin]);
+        selectedCard = null;
+        matchCount = 0;
+        updateMatchDisplay();
+        statusMsgDiv.innerHTML = "✨ 新的一局！点击汉字，再点击拼音进行配对~";
+        statusMsgDiv.style.color = "#4a3720";
+        renderCards();
+    }
+
+    // 更新计分板
+    function updateMatchDisplay() {
+        matchedSpan.innerText = matchCount;
+        totalSpan.innerText = wordsData.length;
+        if (matchCount === wordsData.length) {
+            statusMsgDiv.innerHTML = "🎉 恭喜！全部配对成功！太厉害了！ 🎉";
+            statusMsgDiv.style.color = "#1f6d3a";
+        }
+    }
+
+    // 检查是否胜利并显示消息
+    function checkWin() {
+        if (matchCount === wordsData.length) {
+            statusMsgDiv.innerHTML = "🏆 完美通关！点击重置可再玩一局 🏆";
+        }
+    }
+
+    // 清除所有卡片的高亮选中样式
+    function clearSelectedHighlight() {
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.remove('selected');
+        });
+    }
+
+    // 处理配对
+    function tryMatch(chineseCard, pinyinCard) {
+        if (chineseCard.pairId === pinyinCard.pairId) {
+            // 配对正确
+            chineseCard.matched = true;
+            pinyinCard.matched = true;
+            matchCount++;
+            updateMatchDisplay();
+            statusMsgDiv.innerHTML = "✅ 配对正确！继续加油～ ✅";
+            statusMsgDiv.style.color = "#1f6d3a";
+            // 清除当前选中状态
+            if (selectedCard) selectedCard = null;
+            clearSelectedHighlight();
+            renderCards();
+            checkWin();
+        } else {
+            // 配对错误
+            statusMsgDiv.innerHTML = "❌ 配对错误！再试试看～ ❌";
+            statusMsgDiv.style.color = "#b33b2c";
+            // 不清除matched，只清除选中高亮
+            if (selectedCard) selectedCard = null;
+            clearSelectedHighlight();
+            renderCards();  // 重新渲染会清掉高亮（无selected）
+            // 但是为了体验，1秒后把错误提示还原？不用太复杂，下次点击时还原消息即可。
+            setTimeout(() => {
+                if (matchCount !== wordsData.length) {
+                    if (statusMsgDiv.innerHTML.includes("错误")) {
+                        statusMsgDiv.innerHTML = "✨ 点击汉字，再点击拼音，正确配对即可消除 ✨";
+                        statusMsgDiv.style.color = "#4a3720";
+                    }
+                }
+            }, 800);
+        }
+    }
+
+    // 渲染左右两侧卡片
+    function renderCards() {
+        // 渲染汉字列
+        chineseContainer.innerHTML = '';
+        chineseCards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = `card chinese-card ${card.matched ? 'matched' : ''}`;
+            if (!card.matched) {
+                cardDiv.innerHTML = `<div class="chinese">${card.text}</div>`;
+                cardDiv.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (card.matched) return;
+                    // 如果胜利了禁止再点
+                    if (matchCount === wordsData.length) return;
+
+                    // 情况1: 已经选中了一个拼音卡片？
+                    if (selectedCard && selectedCard.type === 'pinyin') {
+                        // 尝试配对: 当前汉字 vs 选中的拼音
+                        const pinyinId = selectedCard.id;
+                        const pinyinCardObj = pinyinCards.find(p => p.id === pinyinId);
+                        if (pinyinCardObj && !pinyinCardObj.matched) {
+                            const chineseCardObj = card;
+                            if (!chineseCardObj.matched) {
+                                tryMatch(chineseCardObj, pinyinCardObj);
+                            } else {
+                                // 汉字已被匹配
+                                statusMsgDiv.innerHTML = "⚠️ 这个汉字已经配对过了！";
+                                selectedCard = null;
+                                clearSelectedHighlight();
+                            }
+                        } else {
+                            selectedCard = null;
+                            clearSelectedHighlight();
+                        }
+                    } 
+                    else if (selectedCard && selectedCard.type === 'chinese') {
+                        // 已选中汉字，再点汉字：取消之前的选中，重新选中当前汉字
+                        selectedCard = { type: 'chinese', id: card.id, pairId: card.pairId };
+                        clearSelectedHighlight();
+                        cardDiv.classList.add('selected');
+                        statusMsgDiv.innerHTML = `🔍 已选中汉字「${card.text}」，现在点击右侧对应的拼音。`;
+                    }
+                    else {
+                        // 没有任何选中，选中当前汉字
+                        selectedCard = { type: 'chinese', id: card.id, pairId: card.pairId };
+                        clearSelectedHighlight();
+                        cardDiv.classList.add('selected');
+                        statusMsgDiv.innerHTML = `🔍 已选中汉字「${card.text}」，现在点击右侧对应的拼音。`;
+                    }
+                });
+            } else {
+                // 已配对，占位不可见
+                cardDiv.style.visibility = 'hidden';
+                cardDiv.style.pointerEvents = 'none';
+                cardDiv.innerHTML = '<div class="chinese">已配对</div>';
+            }
+            chineseContainer.appendChild(cardDiv);
+        });
+
+        // 渲染拼音列
+        pinyinContainer.innerHTML = '';
+        pinyinCards.forEach(card => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = `card pinyin-card ${card.matched ? 'matched' : ''}`;
+            if (!card.matched) {
+                cardDiv.innerHTML = `<div class="pinyin">${card.text}</div>`;
+                cardDiv.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (card.matched) return;
+                    if (matchCount === wordsData.length) return;
+
+                    if (selectedCard && selectedCard.type === 'chinese') {
+                        const chineseId = selectedCard.id;
+                        const chineseCardObj = chineseCards.find(c => c.id === chineseId);
+                        if (chineseCardObj && !chineseCardObj.matched) {
+                            const pinyinCardObj = card;
+                            if (!pinyinCardObj.matched) {
+                                tryMatch(chineseCardObj, pinyinCardObj);
+                            } else {
+                                statusMsgDiv.innerHTML = "⚠️ 这个拼音已经配对过了！";
+                                selectedCard = null;
+                                clearSelectedHighlight();
+                            }
+                        } else {
+                            selectedCard = null;
+                            clearSelectedHighlight();
+                        }
+                    }
+                    else if (selectedCard && selectedCard.type === 'pinyin') {
+                        // 已选中拼音，再点拼音 -> 切换选中
+                        selectedCard = { type: 'pinyin', id: card.id, pairId: card.pairId };
+                        clearSelectedHighlight();
+                        cardDiv.classList.add('selected');
+                        statusMsgDiv.innerHTML = `🔍 已选中拼音「${card.text}」，现在点击左侧对应的汉字。`;
+                    }
+                    else {
+                        selectedCard = { type: 'pinyin', id: card.id, pairId: card.pairId };
+                        clearSelectedHighlight();
+                        cardDiv.classList.add('selected');
+                        statusMsgDiv.innerHTML = `🔍 已选中拼音「${card.text}」，现在点击左侧对应的汉字。`;
+                    }
+                });
+            } else {
+                cardDiv.style.visibility = 'hidden';
+                cardDiv.style.pointerEvents = 'none';
+                cardDiv.innerHTML = '<div class="pinyin">已配对</div>';
+            }
+            pinyinContainer.appendChild(cardDiv);
+        });
+    }
+
+    // 重置游戏
+    function resetGame() {
+        initGame();
+    }
+
+    // 绑定重置按钮
+    document.getElementById('resetGame').addEventListener('click', resetGame);
+
+    // 开始游戏
+    initGame();
+</script>
+</body>
+</html>
