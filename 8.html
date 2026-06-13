@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phân biệt từ dễ nhầm</title>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f5f5f5;
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+}
+
+#word{
+    font-size:160px;
+    font-weight:bold;
+}
+
+@media (max-width: 768px) {
+    #word {
+        font-size: 80px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="word"></div>
+
+<script>
+
+let pairs = [
+["钢","刚"],
+["银","针"],
+["孙","孩"],
+["闹","问"],
+["赶","起"],
+["扬","场"],
+["怀","坏"],
+["骗","遍"],
+["童","章"],
+["差","着"],
+["巾","币"],
+["膏","亮"],
+["省","看"],
+["脏","肥"],
+["扔","圾"],
+["既","即"],
+["料","糖"],
+["丢","去"],
+["垃","拉"]
+];
+
+function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+        let j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+}
+
+shuffle(pairs);
+
+let index = 0;
+
+function showPair(){
+
+    document.getElementById("word").innerHTML =
+        pairs[index][0] + " ／ " + pairs[index][1];
+
+    index++;
+
+    if(index >= pairs.length){
+        shuffle(pairs);
+        index = 0;
+    }
+}
+
+showPair();
+
+setInterval(showPair,3000);
+
+</script>
+
+</body>
+</html>
