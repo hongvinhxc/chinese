@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎯 量词小达人 - 练习游戏</title>
+    <style>
+        /* ===== 全局重置 & 字体 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(145deg, #f7f0fc 0%, #e9def0 100%);
+            padding: 20px;
+            margin: 0;
+        }
+
+        /* ===== 主容器 ===== */
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 30px 28px 35px;
+            box-shadow: 0 20px 60px rgba(120, 80, 150, 0.20), 0 8px 24px rgba(120, 80, 150, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.40);
+            transition: all 0.3s ease;
+        }
+
+        /* ===== 顶部：标题 & 得分 ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4a2c5e;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .title span {
+            font-size: 28px;
+        }
+
+        .score-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #4a2c5e;
+        }
+        .score-area .score-num {
+            background: #6c3f8a;
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 20px;
+            min-width: 48px;
+            text-align: center;
+        }
+        .score-area .total-num {
+            color: #8a7a9a;
+            font-weight: 500;
+        }
+
+        /* ===== 进度条 ===== */
+        .progress-wrap {
+            width: 100%;
+            height: 8px;
+            background: #e8dff0;
+            border-radius: 20px;
+            margin-bottom: 28px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b388d6, #7c4da8);
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* ===== 卡片主体 ===== */
+        .question-card {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 36px 24px 32px;
+            box-shadow: 0 4px 20px rgba(100, 70, 130, 0.08);
+            border: 1px solid rgba(200, 180, 215, 0.25);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .question-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #9a86aa;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 填空展示 ===== */
+        .fill-sentence {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            font-size: 42px;
+            font-weight: 700;
+            color: #2d1b3a;
+            padding: 8px 0 20px;
+            flex-wrap: wrap;
+            min-height: 90px;
+        }
+        .fill-sentence .part {
+            display: inline-block;
+        }
+        .fill-sentence .blank {
+            display: inline-block;
+            min-width: 70px;
+            min-height: 60px;
+            background: #f4eefa;
+            border-radius: 16px;
+            border: 3px dashed #b58fd1;
+            text-align: center;
+            line-height: 60px;
+            font-size: 36px;
+            color: #4a2c5e;
+            transition: all 0.3s ease;
+            padding: 0 6px;
+            margin: 0 2px;
+        }
+        .fill-sentence .blank.correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            border-style: solid;
+        }
+        .fill-sentence .blank.wrong {
+            background: #f8dddd;
+            border-color: #dc3545;
+            color: #721c24;
+            border-style: solid;
+        }
+        .fill-sentence .blank.show-answer {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+            border-style: solid;
+        }
+        .fill-sentence .emoji-noun {
+            font-size: 40px;
+            margin: 0 4px;
+        }
+
+        /* ===== 选项按钮 ===== */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .option-btn {
+            padding: 16px 8px;
+            font-size: 28px;
+            font-weight: 600;
+            border: 2px solid #e4d8ee;
+            border-radius: 20px;
+            background: #faf8fc;
+            color: #3a264a;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: inherit;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+        .option-btn:hover:not(:disabled) {
+            background: #f2ebf8;
+            border-color: #b58fd1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(120, 80, 150, 0.12);
+        }
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .option-btn.selected-correct {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
+        }
+        .option-btn.selected-wrong {
+            background: #f8dddd;
+            border-color: #dc3545;
+            color: #721c24;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.20);
+        }
+        .option-btn.show-correct {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        /* ===== 反馈区域 ===== */
+        .feedback {
+            text-align: center;
+            margin-top: 22px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 600;
+            gap: 12px;
+            border-radius: 20px;
+            padding: 6px 12px;
+            transition: all 0.3s ease;
+        }
+        .feedback.correct {
+            color: #1e7e34;
+        }
+        .feedback.wrong {
+            color: #b02a37;
+        }
+        .feedback .fb-icon {
+            font-size: 32px;
+        }
+        .feedback .fb-detail {
+            font-size: 16px;
+            font-weight: 400;
+            color: #6a5a7a;
+            margin-top: 4px;
+        }
+
+        /* ===== 底部按钮 ===== */
+        .footer-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 10px;
+        }
+        .btn-next {
+            padding: 14px 44px;
+            font-size: 20px;
+            font-weight: 600;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #8b5cb0, #6c3f8a);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(108, 63, 138, 0.30);
+            font-family: inherit;
+            letter-spacing: 0.5px;
+            display: none;
+        }
+        .btn-next:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(108, 63, 138, 0.35);
+        }
+        .btn-next:active {
+            transform: scale(0.96);
+        }
+        .btn-next.show {
+            display: inline-block;
+        }
+
+        /* ===== 结束页面 ===== */
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 20px 8px 8px;
+        }
+        .result-screen.active {
+            display: block;
+        }
+        .result-screen .big-icon {
+            font-size: 72px;
+            margin-bottom: 8px;
+        }
+        .result-screen .result-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d1b3a;
+            margin-bottom: 6px;
+        }
+        .result-screen .result-sub {
+            font-size: 18px;
+            color: #7a6a8a;
+            margin-bottom: 20px;
+        }
+        .result-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 20px 0 28px;
+            flex-wrap: wrap;
+        }
+        .result-stats .stat-item {
+            background: #f4eefa;
+            border-radius: 24px;
+            padding: 14px 28px;
+            min-width: 100px;
+        }
+        .result-stats .stat-item .num {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4a2c5e;
+        }
+        .result-stats .stat-item .label {
+            font-size: 14px;
+            color: #8a7a9a;
+            margin-top: 2px;
+        }
+        .btn-restart {
+            padding: 16px 48px;
+            font-size: 20px;
+            font-weight: 600;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #f5b042, #e8932a);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 20px rgba(232, 147, 42, 0.30);
+            font-family: inherit;
+            letter-spacing: 0.5px;
+        }
+        .btn-restart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 28px rgba(232, 147, 42, 0.35);
+        }
+        .btn-restart:active {
+            transform: scale(0.96);
+        }
+
+        /* ===== 错误列表 ===== */
+        .wrong-list-wrap {
+            margin-top: 24px;
+            background: #faf6fc;
+            border-radius: 20px;
+            padding: 16px 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .wrong-list-wrap h4 {
+            font-size: 15px;
+            color: #6a5a7a;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .wrong-list-wrap .wrong-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 4px;
+            border-bottom: 1px solid #ede5f5;
+            font-size: 17px;
+            color: #3a264a;
+        }
+        .wrong-list-wrap .wrong-item:last-child {
+            border-bottom: none;
+        }
+        .wrong-list-wrap .wrong-item .wi-right {
+            color: #28a745;
+            font-weight: 600;
+        }
+        .wrong-list-wrap .wrong-item .wi-wrong {
+            color: #dc3545;
+            font-weight: 500;
+            text-decoration: line-through;
+            margin-right: 6px;
+        }
+        .wrong-list-wrap .wrong-item .wi-arrow {
+            color: #9a8aaa;
+            margin: 0 6px;
+        }
+
+        /* ===== 隐藏工具 ===== */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 520px) {
+            .game-container {
+                padding: 20px 16px 25px;
+                border-radius: 32px;
+            }
+            .title {
+                font-size: 19px;
+            }
+            .title span {
+                font-size: 22px;
+            }
+            .score-area {
+                font-size: 15px;
+                gap: 10px;
+            }
+            .score-area .score-num {
+                font-size: 17px;
+                padding: 2px 12px;
+                min-width: 38px;
+            }
+            .fill-sentence {
+                font-size: 30px;
+                gap: 4px;
+                min-height: 70px;
+                padding: 4px 0 14px;
+            }
+            .fill-sentence .blank {
+                min-width: 50px;
+                min-height: 46px;
+                line-height: 46px;
+                font-size: 28px;
+            }
+            .fill-sentence .emoji-noun {
+                font-size: 32px;
+            }
+            .options-grid {
+                gap: 10px;
+            }
+            .option-btn {
+                font-size: 24px;
+                padding: 14px 6px;
+                border-radius: 16px;
+            }
+            .feedback {
+                font-size: 18px;
+                min-height: 40px;
+            }
+            .btn-next {
+                padding: 12px 32px;
+                font-size: 17px;
+            }
+            .result-screen .big-icon {
+                font-size: 56px;
+            }
+            .result-screen .result-title {
+                font-size: 26px;
+            }
+            .result-stats {
+                gap: 16px;
+            }
+            .result-stats .stat-item {
+                padding: 10px 18px;
+                min-width: 72px;
+            }
+            .result-stats .stat-item .num {
+                font-size: 28px;
+            }
+            .btn-restart {
+                padding: 14px 34px;
+                font-size: 17px;
+            }
+            .wrong-list-wrap {
+                padding: 12px 14px;
+            }
+            .wrong-list-wrap .wrong-item {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .fill-sentence {
+                font-size: 24px;
+            }
+            .fill-sentence .blank {
+                min-width: 40px;
+                min-height: 38px;
+                line-height: 38px;
+                font-size: 22px;
+            }
+            .option-btn {
+                font-size: 20px;
+                padding: 12px 4px;
+            }
+            .game-container {
+                padding: 16px 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="app">
+        <!-- ===== 头部 ===== -->
+        <div class="header">
+            <div class="title">
+                <span>📚</span> 量词小达人
+            </div>
+            <div class="score-area">
+                <span>⭐</span>
+                <span class="score-num" id="scoreDisplay">0</span>
+                <span class="total-num">/ <span id="totalDisplay">0</span></span>
+            </div>
+        </div>
+
+        <!-- ===== 进度条 ===== -->
+        <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- ===== 主游戏区 ===== -->
+        <div id="gameScreen">
+            <div class="question-card">
+                <div class="question-label">✏️ 请选择正确的量词</div>
+
+                <!-- 填空展示 -->
+                <div class="fill-sentence" id="sentenceDisplay">
+                    <span class="part">一</span>
+                    <span class="blank" id="blankSlot">?</span>
+                    <span class="part emoji-noun" id="nounEmoji">🍎</span>
+                    <span class="part" id="nounText">苹果</span>
+                </div>
+
+                <!-- 选项 -->
+                <div class="options-grid" id="optionsContainer">
+                    <button class="option-btn" data-value="个">个</button>
+                    <button class="option-btn" data-value="只">只</button>
+                    <button class="option-btn" data-value="条">条</button>
+                    <button class="option-btn" data-value="件">件</button>
+                </div>
+
+                <!-- 反馈 -->
+                <div class="feedback" id="feedbackArea">
+                    <span class="fb-icon">💡</span>
+                    <span>选择一个答案吧</span>
+                </div>
+            </div>
+
+            <!-- 下一题按钮 -->
+            <div class="footer-actions">
+                <button class="btn-next" id="nextBtn">下一题 →</button>
+            </div>
+        </div>
+
+        <!-- ===== 结果页面 ===== -->
+        <div class="result-screen" id="resultScreen">
+            <div class="big-icon" id="resultIcon">🎉</div>
+            <div class="result-title" id="resultTitle">太棒啦！</div>
+            <div class="result-sub" id="resultSub">你真是量词小达人！</div>
+
+            <div class="result-stats">
+                <div class="stat-item">
+                    <div class="num" id="finalScore">0</div>
+                    <div class="label">✅ 答对</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="finalTotal">0</div>
+                    <div class="label">📝 总题</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="finalRate">0%</div>
+                    <div class="label">🎯 正确率</div>
+                </div>
+            </div>
+
+            <!-- 错题列表 -->
+            <div class="wrong-list-wrap" id="wrongListWrap" style="display:none;">
+                <h4>📖 需要复习的量词</h4>
+                <div id="wrongList"></div>
+            </div>
+
+            <button class="btn-restart" id="restartBtn">🔄 再来一次</button>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  1. 数据：量词 + 名词 + emoji （已按用户要求修改）
+        // ================================================================
+        const PAIRS = [
+            { noun: '苹果', measure: '个', emoji: '🍎' },
+            { noun: '猫', measure: '只', emoji: '🐱' },
+            { noun: '狗', measure: '只', emoji: '🐶' },
+            { noun: '路', measure: '条', emoji: '🛤️' },
+            { noun: '衣服', measure: '件', emoji: '👕' },
+            { noun: '书', measure: '本', emoji: '📖' },
+            { noun: '椅子', measure: '把', emoji: '🪑' },
+            { noun: '米饭', measure: '碗', emoji: '🍚' },
+            { noun: '杯子', measure: '个', emoji: '🥤' },
+            { noun: '人', measure: '个', emoji: '👤' },
+            { noun: '饭馆', measure: '家', emoji: '🏨' },
+            { noun: '水', measure: '杯', emoji: '💧' },
+        ];
+
+        // ================================================================
+        //  2. 游戏状态
+        // ================================================================
+        const TOTAL_QUESTIONS = 12; // 每轮出题数（与数据量一致）
+        let questions = []; // 当前轮题目列表
+        let currentIndex = 0;
+        let score = 0;
+        let wrongList = []; // 记录错题 { noun, measure, userAnswer, emoji }
+        let isAnswered = false;
+        let timerId = null;
+
+        // DOM 引用
+        const $ = id => document.getElementById(id);
+        const scoreDisplay = $('scoreDisplay');
+        const totalDisplay = $('totalDisplay');
+        const progressBar = $('progressBar');
+        const sentenceDisplay = $('sentenceDisplay');
+        const blankSlot = $('blankSlot');
+        const nounEmoji = $('nounEmoji');
+        const nounText = $('nounText');
+        const optionsContainer = $('optionsContainer');
+        const feedbackArea = $('feedbackArea');
+        const nextBtn = $('nextBtn');
+        const gameScreen = $('gameScreen');
+        const resultScreen = $('resultScreen');
+        const finalScore = $('finalScore');
+        const finalTotal = $('finalTotal');
+        const finalRate = $('finalRate');
+        const resultIcon = $('resultIcon');
+        const resultTitle = $('resultTitle');
+        const resultSub = $('resultSub');
+        const wrongListWrap = $('wrongListWrap');
+        const wrongListEl = $('wrongList');
+        const restartBtn = $('restartBtn');
+
+        // ================================================================
+        //  3. 工具函数
+        // ================================================================
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // 从数组中随机取 n 个不同元素
+        function pickRandom(arr, n) {
+            const shuffled = shuffle([...arr]);
+            return shuffled.slice(0, n);
+        }
+
+        // 获取所有量词（去重）
+        function getAllMeasures() {
+            const set = new Set(PAIRS.map(p => p.measure));
+            return [...set];
+        }
+
+        // ================================================================
+        //  4. 生成题目
+        // ================================================================
+        function generateQuestions() {
+            // 从 PAIRS 中随机选 TOTAL_QUESTIONS 个不同的条目
+            const selected = pickRandom(PAIRS, TOTAL_QUESTIONS);
+            const allMeasures = getAllMeasures();
+
+            return selected.map(item => {
+                // 为这道题生成干扰项：从所有量词中排除正确答案，随机取3个
+                const distractors = allMeasures.filter(m => m !== item.measure);
+                const shuffledDist = shuffle(distractors);
+                const wrongOptions = shuffledDist.slice(0, 3);
+
+                // 如果干扰项不足3个（不太可能），用 '个' 补位
+                while (wrongOptions.length < 3) {
+                    wrongOptions.push('个');
+                }
+
+                // 构建选项：1个正确 + 3个错误，打乱顺序
+                const options = shuffle([item.measure, ...wrongOptions]);
+
+                return {
+                    noun: item.noun,
+                    measure: item.measure,
+                    emoji: item.emoji,
+                    options: options,
+                };
+            });
+        }
+
+        // ================================================================
+        //  5. 渲染题目
+        // ================================================================
+        function renderQuestion(index) {
+            const q = questions[index];
+            if (!q) return;
+
+            // 更新填空
+            nounEmoji.textContent = q.emoji || '📦';
+            nounText.textContent = q.noun;
+            blankSlot.textContent = '？';
+            blankSlot.className = 'blank';
+
+            // 更新选项按钮
+            const btns = optionsContainer.querySelectorAll('.option-btn');
+            btns.forEach((btn, i) => {
+                btn.textContent = q.options[i] || '?';
+                btn.dataset.value = q.options[i] || '?';
+                btn.disabled = false;
+                btn.className = 'option-btn';
+            });
+
+            // 重置反馈
+            feedbackArea.className = 'feedback';
+            feedbackArea.innerHTML = `<span class="fb-icon">💡</span><span>选择一个答案吧</span>`;
+
+            // 隐藏下一题按钮
+            nextBtn.classList.remove('show');
+
+            // 更新进度
+            updateProgress(index);
+
+            // 更新总分显示
+            totalDisplay.textContent = questions.length;
+            scoreDisplay.textContent = score;
+
+            isAnswered = false;
+        }
+
+        function updateProgress(index) {
+            const pct = ((index) / questions.length) * 100;
+            progressBar.style.width = Math.min(pct, 100) + '%';
+        }
+
+        // ================================================================
+        //  6. 处理选择
+        // ================================================================
+        function handleOptionClick(e) {
+            const btn = e.currentTarget;
+            if (btn.disabled || isAnswered) return;
+
+            const q = questions[currentIndex];
+            const userAnswer = btn.dataset.value;
+            const isCorrect = (userAnswer === q.measure);
+
+            // 禁用所有选项
+            const allBtns = optionsContainer.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            // 标记用户选择
+            if (isCorrect) {
+                btn.classList.add('selected-correct');
+                score += 1;
+                scoreDisplay.textContent = score;
+            } else {
+                btn.classList.add('selected-wrong');
+                // 显示正确答案
+                allBtns.forEach(b => {
+                    if (b.dataset.value === q.measure) {
+                        b.classList.add('show-correct');
+                    }
+                });
+                // 记录错题
+                wrongList.push({
+                    noun: q.noun,
+                    measure: q.measure,
+                    userAnswer: userAnswer,
+                    emoji: q.emoji || '',
+                });
+            }
+
+            // 填空显示
+            blankSlot.textContent = q.measure;
+            blankSlot.className = 'blank ' + (isCorrect ? 'correct' : 'wrong');
+
+            // 反馈信息
+            const fbIcon = isCorrect ? '🎉' : '😅';
+            const fbMsg = isCorrect ?
+                `太棒了！ “一${q.measure}${q.noun}” 正确！` :
+                `哎呀，“一${q.measure}${q.noun}” 才是正确的哦。`;
+            feedbackArea.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+            feedbackArea.innerHTML = `
+                <span class="fb-icon">${fbIcon}</span>
+                <div>
+                    <div>${fbMsg}</div>
+                    <div class="fb-detail">${isCorrect ? '🌟 继续加油！' : '💪 记住这个搭配吧！'}</div>
+                </div>
+            `;
+
+            isAnswered = true;
+
+            // 显示下一题按钮
+            const isLast = (currentIndex >= questions.length - 1);
+            nextBtn.textContent = isLast ? '📊 查看成绩' : '下一题 →';
+            nextBtn.classList.add('show');
+        }
+
+        // ================================================================
+        //  7. 下一题 / 结束
+        // ================================================================
+        function goToNext() {
+            if (!isAnswered) return;
+
+            if (currentIndex >= questions.length - 1) {
+                // 游戏结束
+                showResult();
+            } else {
+                currentIndex++;
+                renderQuestion(currentIndex);
+            }
+        }
+
+        // ================================================================
+        //  8. 结果页面
+        // ================================================================
+        function showResult() {
+            gameScreen.style.display = 'none';
+            resultScreen.classList.add('active');
+
+            const total = questions.length;
+            const correct = score;
+            const rate = Math.round((correct / total) * 100);
+
+            finalScore.textContent = correct;
+            finalTotal.textContent = total;
+            finalRate.textContent = rate + '%';
+
+            // 根据正确率给出评价
+            let icon, title, sub;
+            if (rate === 100) {
+                icon = '🏆';
+                title = '完美通关！';
+                sub = '你已经是量词大师啦！🎊';
+            } else if (rate >= 80) {
+                icon = '🌟';
+                title = '非常优秀！';
+                sub = '继续练习，你会更棒！💪';
+            } else if (rate >= 60) {
+                icon = '📈';
+                title = '还不错哦！';
+                sub = '多复习一下错题吧！📖';
+            } else {
+                icon = '🌱';
+                title = '继续加油！';
+                sub = '量词需要多多练习，再来一次吧！💪';
+            }
+            resultIcon.textContent = icon;
+            resultTitle.textContent = title;
+            resultSub.textContent = sub;
+
+            // 显示错题列表
+            if (wrongList.length > 0) {
+                wrongListWrap.style.display = 'block';
+                wrongListEl.innerHTML = wrongList.map(w =>
+                    `<div class="wrong-item">
+                        <span>${w.emoji || '📦'} ${w.noun}</span>
+                        <span>
+                            <span class="wi-wrong">${w.userAnswer}</span>
+                            <span class="wi-arrow">→</span>
+                            <span class="wi-right">${w.measure}</span>
+                        </span>
+                    </div>`
+                ).join('');
+            } else {
+                wrongListWrap.style.display = 'none';
+            }
+
+            // 进度条填满
+            progressBar.style.width = '100%';
+        }
+
+        // ================================================================
+        //  9. 重新开始
+        // ================================================================
+        function restartGame() {
+            // 重置状态
+            score = 0;
+            currentIndex = 0;
+            wrongList = [];
+            isAnswered = false;
+
+            // 生成新题目
+            questions = generateQuestions();
+
+            // 切换显示
+            resultScreen.classList.remove('active');
+            gameScreen.style.display = 'block';
+
+            // 渲染第一题
+            scoreDisplay.textContent = '0';
+            renderQuestion(0);
+        }
+
+        // ================================================================
+        //  10. 初始化
+        // ================================================================
+        function init() {
+            // 生成题目
+            questions = generateQuestions();
+
+            // 渲染第一题
+            totalDisplay.textContent = questions.length;
+            scoreDisplay.textContent = '0';
+            renderQuestion(0);
+
+            // 绑定事件
+            optionsContainer.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', handleOptionClick);
+            });
+            nextBtn.addEventListener('click', goToNext);
+            restartBtn.addEventListener('click', restartGame);
+        }
+
+        // ================================================================
+        //  启动游戏
+        // ================================================================
+        init();
+    </script>
+</body>
+</html>
